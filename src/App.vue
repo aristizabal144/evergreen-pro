@@ -47,13 +47,13 @@
         <el-table-column label="Name">
           <template slot-scope="scope">
             <el-tag style="margin-left: 10px" effect="dark">{{
-              scope.row.name
+              scope.row.sownname
             }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="Type of sowing">
           <template slot-scope="scope">
-            <span style="margin-left: 10px">{{ scope.row.type }}</span>
+            <span style="margin-left: 10px">{{ scope.row.sowntype }}</span>
           </template>
         </el-table-column>
         <el-table-column label="Plot">
@@ -64,7 +64,7 @@
         <el-table-column label="Optimal temperature">
           <template slot-scope="scope">
             <el-tag style="margin-left: 10px" effect="dark" type="danger"
-              ><b>{{ scope.row.temperature }}°</b></el-tag
+              ><b>{{ scope.row.optimaltemp }}°</b></el-tag
             >
           </template>
         </el-table-column>
@@ -81,19 +81,25 @@
       <el-row>
         <el-col>
           <p style="text-align: start">Reference:</p>
-          <el-input placeholder="Enter a reference" v-model="input"></el-input>
+          <el-input
+            placeholder="Enter a reference"
+            v-model="form.reference"
+          ></el-input>
         </el-col>
       </el-row>
       <el-row>
         <el-col>
           <p style="text-align: start">Name:</p>
-          <el-input placeholder="Enter a name" v-model="input"></el-input>
+          <el-input
+            placeholder="Enter a name"
+            v-model="form.sownname"
+          ></el-input>
         </el-col>
       </el-row>
       <el-row :gutter="20">
         <el-col :span="12">
           <p style="text-align: start">Type:</p>
-          <el-select v-model="value" placeholder="Select">
+          <el-select v-model="form.sowntype" placeholder="Select">
             <el-option
               v-for="item in types"
               :key="item.name"
@@ -105,7 +111,7 @@
         </el-col>
         <el-col :span="12">
           <p style="text-align: start">Plot:</p>
-          <el-select v-model="value" placeholder="Select">
+          <el-select v-model="form.plot" placeholder="Select">
             <el-option
               v-for="item in plots"
               :key="item.name"
@@ -119,17 +125,22 @@
       <el-row>
         <el-col>
           <p style="text-align: start">Temperature:</p>
-          <el-input-number placeholder="Enter a temperature" v-model="input" style="width:100%;"></el-input-number>
+          <el-input-number
+            placeholder="Enter a temperature"
+            v-model="form.optimaltemp"
+            style="width: 100%"
+          ></el-input-number>
         </el-col>
       </el-row>
       <el-row>
         <el-col>
           <el-button
-          type="primary"
-          style="width: 100%; margin-top: 20px"
-          icon="el-icon-check"
-          >Save Changes</el-button
-        >
+            type="primary"
+            style="width: 100%; margin-top: 20px"
+            icon="el-icon-check"
+            @click="submit()"
+            >Save Changes</el-button
+          >
         </el-col>
       </el-row>
     </el-dialog>
@@ -137,47 +148,49 @@
 </template>
 
 <script>
+import Vue from "vue"; // in Vue 2
+import axios from "axios";
+import VueAxios from "vue-axios";
+
 export default {
   data() {
     return {
-      data: [
-        {
-          id: 1,
-          reference: "PRO-1",
-          name: "Apple",
-          type: "fruits",
-          plot: "PLOT #1",
-          temperature: 29,
-        },
-        {
-          id: 1,
-          reference: "PRO-2",
-          name: "Banana",
-          type: "fruits",
-          plot: "PLOT #2",
-          temperature: 21,
-        },
-        {
-          id: 1,
-          reference: "PRO-3",
-          name: "Berry",
-          type: "fruits",
-          plot: "PLOT #3",
-          temperature: 19,
-        },
-      ],
+      data: [],
       dialogVisible: false,
-      types: [
-        {name: "Fruit"},
-        {name: "Vegetable"},
-        {name: "Flowers"}
-      ],
-      plots: [
-        {name: "PLOT # 1"},
-        {name: "PLOT # 2"},
-        {name: "PLOT # 3"}
-      ]
+      types: [{ name: "Fruit" }, { name: "Vegetable" }, { name: "Flowers" }],
+      plots: [{ name: "PLOT # 1" }, { name: "PLOT # 2" }, { name: "PLOT # 3" }],
+      form: {
+        sownname: null,
+        reference: null,
+        sowntype: null,
+        plot: null,
+        optimaltemp: null,
+      },
     };
+  },
+  created() {
+    axios
+      .get(
+        "http://ec2-3-15-199-208.us-east-2.compute.amazonaws.com:5000/api/sowns"
+      )
+      .then((response) => (this.data = response.data));
+  },
+  methods: {
+    async submit() {
+      let result = await axios.post(
+        "http://ec2-3-15-199-208.us-east-2.compute.amazonaws.com:5000/api/sowns",
+        this.form
+      );
+      console.log(result);
+      if (result.status == 200) {
+        this.dialogVisible = false;
+        axios
+          .get(
+            "http://ec2-3-15-199-208.us-east-2.compute.amazonaws.com:5000/api/sowns"
+          )
+          .then((response) => (this.data = response.data));
+      }
+    },
   },
 };
 </script>
